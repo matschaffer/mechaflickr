@@ -1,0 +1,8 @@
+--- 
+token: 976598       # This will get populated if it hasn't been already. 
+perms: write
+api_key: 987654321
+secret: foobarbaz
+proxy:
+  host: localhost   # Point this at charles for some hot debugging action
+  port: 8888
