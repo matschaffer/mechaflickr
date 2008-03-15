@@ -10,10 +10,11 @@ class TestMechaflickr < Test::Unit::TestCase
   end
   
   def test_can_get_token
-    assert_match /\w+-\w+/, @mf.token
+    assert_match /\w+-\w+/, @mf.auth_token
   end
   
   def test_can_upload
-    @mf.upload(fixture_file('exampleimage.jpg'), 'title' => 'test', 'description' => 'just a test')
+    photo = @mf.upload(fixture_file('exampleimage.jpg'), 'title' => 'test', 'description' => 'just a test')
+    assert photo.is_a?(Mechaflickr::Photo)
   end
 end
