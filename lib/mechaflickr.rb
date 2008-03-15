@@ -1,6 +1,7 @@
 $:.unshift File.dirname(__FILE__)
 
 require 'mechaflickr/photo'
+require 'mechaflickr/photoset'
 
 require 'rubygems'
 require 'ruby-debug'
@@ -29,13 +30,13 @@ class Mechaflickr
   end
   
   def frob
-    @frob ||= element('frob', api_call('flickr.auth.getFrob'))
+    @frob ||= element(api_call('flickr.auth.getFrob'), 'frob')
   end
   
   def auth_token
     if @auth_token.nil?
       authorize
-      @auth_token = element('token', api_call('flickr.auth.getToken', 'frob' => frob))
+      @auth_token = element(api_call('flickr.auth.getToken', 'frob' => frob), 'token')
       @config['auth_token'] = @auth_token
       File.open(@config_file, 'w') { |f| f.print @config.to_yaml }
     end
@@ -71,10 +72,22 @@ class Mechaflickr
   def upload(path, options)
     args = sign(auth(options))
     args['photo'] = File.new(path)
-    Photo.new(element('photoid', @agent.post(UPLOAD, args).body))
+    Photo.new(element(@agent.post(UPLOAD, args).body, 'photoid'))
+  end
+  
+  def create_set(title, photos, description = "")
+    args = {'title' => title,
+            'primary_photo_id' => photos.first.id,
+            'description' => description }
+    response = element(auth_api_call('flickr.photosets.create', args), 'photoset', :return_element)
+    Photoset.new(response['id'], response['url'])
   end
   
   private
+  def auth_api_call(method, args = {})
+    api_call(method, auth(args))
+  end
+  
   def api_call(method, args = {})
     args = args.merge('method' => method, 'api_key' => api_key)
     response = @agent.get(ENDPOINT, sign(args))
@@ -91,7 +104,8 @@ class Mechaflickr
     args.merge('api_sig' => signature)
   end
   
-  def element(name, xml)
-    Hpricot(xml).search(name).inner_html
+  def element(xml, name, return_element = false)
+    e = Hpricot(xml).search(name)
+    return_element ? e : e.inner_html
   end
 end
