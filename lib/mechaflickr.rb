@@ -1,6 +1,7 @@
 $:.unshift File.dirname(__FILE__)
 
 require 'rubygems'
+require 'ruby-debug'
 require 'mechanize'
 require 'hpricot'
 require 'digest/md5'
@@ -9,6 +10,7 @@ require 'yaml'
 class Mechaflickr
   ENDPOINT = 'http://api.flickr.com/services/rest/'
   AUTH = 'http://flickr.com/services/auth/'
+  UPLOAD = 'http://api.flickr.com/services/upload/'
   
   attr_accessor :authorization
   
@@ -20,7 +22,7 @@ class Mechaflickr
     @agent = WWW::Mechanize.new
     @agent.set_proxy(@proxy['host'], @proxy['port']) if @proxy
     
-    @authorization = proc { |u| default_authorization(u) }
+    @authorization = method(:default_authorization).to_proc
   end
   
   def frob
@@ -30,8 +32,8 @@ class Mechaflickr
   def token
     if @token.nil?
       authorize
-      @token = api_call('flickr.auth.getToken', 'frob' => frob).search('token').inner_html
-      @config['token'] = @token
+      @auth_token = api_call('flickr.auth.getToken', 'frob' => frob).search('token').inner_html
+      @config['auth_token'] = @auth_token
       File.open(@config_file, 'w') { |f| f.print @config.to_yaml }
     end
     
@@ -50,11 +52,21 @@ class Mechaflickr
     gets
   end
   
+  def upload(path, options)
+    args = sign(auth(options))
+    args['photo'] = File.new(path)
+    @agent.post(UPLOAD, args)
+  end
+  
   private
   def api_call(method, args = {})
     args = args.merge('method' => method, 'api_key' => @api_key)
-    response = @agent.get(ENDPOINT + '?' + WWW::Mechanize.build_query_string(sign(args)))
+    response = @agent.get(ENDPOINT, sign(args))
     Hpricot(response.body)
+  end
+  
+  def auth(args)
+    args.merge('api_key' => @api_key, 'auth_token' => @auth_token)
   end
   
   def sign(args)
