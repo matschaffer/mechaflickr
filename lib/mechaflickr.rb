@@ -77,10 +77,18 @@ class Mechaflickr
   
   def create_set(title, photos, description = "")
     args = {'title' => title,
-            'primary_photo_id' => photos.first.id,
+            'primary_photo_id' => photos.shift.id,
             'description' => description }
     response = element(auth_api_call('flickr.photosets.create', args), 'photoset', :return_element)
-    Photoset.new(response['id'], response['url'])
+    set = Photoset.new(response['id'], response['url'])
+    
+    add_photo(set, photos.shift) until photos.empty?
+    return set
+  end
+  
+  def add_photo(set, photo)
+    args = { 'photoset_id' => set.id, 'photo_id' => photo.id }
+    auth_api_call('flickr.photosets.addPhoto', args)
   end
   
   private
@@ -105,7 +113,7 @@ class Mechaflickr
   end
   
   def element(xml, name, return_element = false)
-    e = Hpricot(xml).search(name)
+    e = Hpricot(xml).search(name).first
     return_element ? e : e.inner_html
   end
 end
