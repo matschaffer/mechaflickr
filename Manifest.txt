@@ -6,6 +6,9 @@ Rakefile
 config/hoe.rb
 config/requirements.rb
 lib/mechaflickr.rb
+lib/mechaflickr/model.rb
+lib/mechaflickr/photo.rb
+lib/mechaflickr/photoset.rb
 lib/mechaflickr/version.rb
 log/debug.log
 script/destroy
@@ -15,7 +18,10 @@ setup.rb
 tasks/deployment.rake
 tasks/environment.rake
 tasks/website.rake
-test/mechaflickr.yaml.example
+test/fixtures/exampleimage.jpg
+test/fixtures/exampleimage2.jpg
+test/fixtures/exampleimage3.jpg
+test/fixtures/mechaflickr.example.yaml
 test/test_helper.rb
 test/test_mechaflickr.rb
 website/index.html
