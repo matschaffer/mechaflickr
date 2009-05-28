@@ -17,18 +17,41 @@ class Mechaflickr
   UPLOAD = 'http://api.flickr.com/services/upload/'
 
   attr_accessor :authorization
-  attr_reader :api_key, :perms
+  attr_reader :api_key, :perms, :agent, :config
 
-  def initialize(config_file)
-    @config_file = config_file
-    @config = YAML::load_file(@config_file)
-    @config.each { |k, v| instance_variable_set("@#{k}", v) }
-
-    @agent = WWW::Mechanize.new
-    @agent.set_proxy(@proxy['host'], @proxy['port']) if @proxy
-
+  def initialize(file = 'mechaflickr.yaml')
+    load_config file
+    setup_agent
     @authorization = method(:default_authorization).to_proc
   end
+  
+  def setup_agent
+    @agent = WWW::Mechanize.new
+    @agent.set_proxy(@proxy['host'], @proxy['port']) if @proxy
+  end
+
+  def load_config file
+    @config_file = file
+    if File.exists? file
+      @config = YAML::load_file(@config_file)
+      @config.each { |k, v| instance_variable_set("@#{k}", v) }
+    else
+      create_config
+    end
+  end
+  
+  def create_config
+    @config = { 'perms' => 'write',
+                'api_key' => 'enterYourAPIKeyHere',
+                'secret' => 'enterYourSecretPhraseHere' }
+    dump_config
+    abort "Couldn't find config file #{@config_file}, so I created it. Please update it with your api key information."
+  end
+  
+  def dump_config
+    File.open(@config_file, 'w') { |f| f.print @config.to_yaml }
+  end
+    
 
   def frob
     @frob ||= element(api_call('flickr.auth.getFrob'), 'frob')
@@ -39,7 +62,7 @@ class Mechaflickr
       authorize
       @auth_token = element(api_call('flickr.auth.getToken', 'frob' => frob), 'token')
       @config['auth_token'] = @auth_token
-      File.open(@config_file, 'w') { |f| f.print @config.to_yaml }
+      dump_config
     end
 
     @auth_token
