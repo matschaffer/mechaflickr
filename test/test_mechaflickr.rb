@@ -27,4 +27,17 @@ class TestMechaflickr < Test::Unit::TestCase
     photoset = @mf.create_set('test set', photos, 'just a test set')
     assert photoset.is_a?(Mechaflickr::Photoset)
   end
+  
+  def test_supports_optional_logging
+    fail
+  end
+  
+  def test_can_upload_descriptions_with_html_entities
+    fail
+    # try it with &yen;, \xE3\x81\xBF\xE3\x81\x9F\xE3\x81\xBE (japanese mixed in with english)
+  end
+  
+  def test_raises_sensible_exception_when_making_empty_sets
+    fail
+  end
 end
