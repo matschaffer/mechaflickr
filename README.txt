@@ -12,7 +12,7 @@ A flickr library written on top of Mechanize
 
 == SYNOPSIS:
 
-Mechaflickr.new('myconfig.yaml')
+mf = Mechaflickr.new
 
 == REQUIREMENTS:
 
