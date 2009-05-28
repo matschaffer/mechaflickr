@@ -5,7 +5,15 @@ class TestMechaflickr < Test::Unit::TestCase
     @mf = Mechaflickr.new(fixture_file('mechaflickr.yaml'))
   end
   
+  def expect_api_call method, options
+    @mf.agent.expects(:get).with(Mechaflickr.ENDPOINT, 
+      { 'api_sig' => @mf.config['api_sig'],
+        'api_key' => @mf.config['api_key'],
+        'method'  => method }.merge(options))
+  end
+  
   def test_can_retrieve_frob
+    agent.expects(:get).with(Mechaflickr).returns("bob")
     assert_match /\w+-\w+-\w+/, @mf.frob
   end
   
