@@ -17,7 +17,7 @@ class Mechaflickr
   UPLOAD = 'http://api.flickr.com/services/upload/'
 
   attr_accessor :authorization
-  attr_reader :api_key, :perms, :agent, :config
+  attr_reader :api_key, :perms, :config
 
   def initialize(file = 'mechaflickr.yaml')
     load_config file
@@ -70,7 +70,7 @@ class Mechaflickr
 
   def authorize
     args = { 'api_key' => api_key, 'perms' => perms, 'frob' => frob }
-    uri = AUTH + '?' + WWW::Mechanize.build_query_string(sign(args))
+    uri = AUTH + '?' + WWW::Mechanize::Util.build_query_string(sign(args))
     @authorization.call(uri)
   end
 
